@@ -122,6 +122,14 @@ export default async function DashboardPage({
     })
   }
 
+  // Count sent today for rate limit protection
+  const todayStart = startOfDay(new Date()).toISOString()
+  const { count: sentToday } = await supabase
+    .from('contacts')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'sent')
+    .gte('sent_at', todayStart)
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -131,7 +139,7 @@ export default async function DashboardPage({
             Overview of your WhatsApp automation campaigns.
           </p>
         </div>
-        <RunNowButton />
+        <RunNowButton sentToday={sentToday || 0} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
