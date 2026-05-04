@@ -15,8 +15,9 @@ import {
   TableRow 
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { format } from 'date-fns'
+import { format, subDays, startOfDay, isSameDay } from 'date-fns'
 import { RunNowButton } from './run-now-button'
+import { AnalyticsChart } from './analytics-chart'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -79,6 +80,36 @@ export default async function DashboardPage() {
     },
   ]
 
+  // Fetch chart data for last 7 days
+  const chartData = []
+  for (let i = 6; i >= 0; i--) {
+    const date = subDays(new Date(), i)
+    const dateStr = format(date, 'MMM dd')
+    
+    const start = startOfDay(date).toISOString()
+    const end = new Date(startOfDay(date).getTime() + 24 * 60 * 60 * 1000).toISOString()
+
+    const { count: daySent } = await supabase
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'sent')
+      .gte('sent_at', start)
+      .lt('sent_at', end)
+
+    const { count: dayFailed } = await supabase
+      .from('contacts')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'failed')
+      .gte('created_at', start)
+      .lt('created_at', end)
+
+    chartData.push({
+      date: dateStr,
+      sent: daySent || 0,
+      failed: dayFailed || 0,
+    })
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -109,59 +140,60 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Contacts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentContacts?.map((contact: any) => (
-                <TableRow key={contact.id}>
-                  <TableCell className="font-medium">{contact.name}</TableCell>
-                  <TableCell>{contact.phone}</TableCell>
-                  <TableCell>{contact.campaigns?.name || 'N/A'}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        contact.status === 'sent'
-                          ? 'default'
-                          : contact.status === 'failed'
-                          ? 'destructive'
-                          : 'secondary'
-                      }
-                      className={
-                        contact.status === 'sent' ? 'bg-green-500 hover:bg-green-600' : ''
-                      }
-                    >
-                      {contact.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(contact.created_at), 'MMM dd, yyyy HH:mm')}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(!recentContacts || recentContacts.length === 0) && (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <div className="lg:col-span-4">
+          <AnalyticsChart data={chartData} />
+        </div>
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Recent Contacts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    No contacts found.
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {recentContacts?.slice(0, 7).map((contact: any) => (
+                  <TableRow key={contact.id}>
+                    <TableCell className="font-medium">{contact.name}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          contact.status === 'sent'
+                            ? 'default'
+                            : contact.status === 'failed'
+                            ? 'destructive'
+                            : 'secondary'
+                        }
+                        className={
+                          contact.status === 'sent' ? 'bg-green-500 hover:bg-green-600 text-[10px] px-1.5 py-0' : 'text-[10px] px-1.5 py-0'
+                        }
+                      >
+                        {contact.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {format(new Date(contact.created_at), 'MMM dd')}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!recentContacts || recentContacts.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
+                      No data.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
