@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { Search, RefreshCcw, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { retryFailedContacts } from './actions'
 import { toast } from 'sonner'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useDebounce } from '@/hooks/use-debounce'
-import { useEffect } from 'react'
 
 export function DashboardControls() {
   const [isPending, startTransition] = useTransition()
@@ -27,7 +25,6 @@ export function DashboardControls() {
     })
   }
 
-  // Handle Search with debounce
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString())
     if (searchTerm) {
@@ -39,28 +36,28 @@ export function DashboardControls() {
   }, [searchTerm, router, searchParams])
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-6">
+    <div className="flex flex-col sm:flex-row gap-3">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input 
-          placeholder="Search contacts by name or phone..." 
-          className="pl-9"
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+        <Input
+          placeholder="Search contacts by name or phone..."
+          className="pl-9 h-9 text-sm bg-white/80 border-slate-200/70 backdrop-blur-sm placeholder:text-slate-400 focus:ring-blue-500/30 focus:border-blue-400 transition-colors duration-150"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-      <Button 
-        variant="outline" 
-        onClick={handleRetry} 
+      <Button
+        variant="outline"
+        onClick={handleRetry}
         disabled={isPending}
-        className="text-orange-600 border-orange-200 hover:bg-orange-50"
+        className="h-9 text-sm border-amber-200 bg-amber-50/60 text-amber-700 hover:bg-amber-100 hover:text-amber-800 hover:border-amber-300 transition-all duration-150 flex-shrink-0"
       >
         {isPending ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
         ) : (
-          <RefreshCcw className="mr-2 h-4 w-4" />
+          <RefreshCcw className="mr-2 h-3.5 w-3.5" />
         )}
-        Retry All Failed
+        Retry Failed
       </Button>
     </div>
   )
