@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
+import { RunNowButton } from './run-now-button'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -80,11 +81,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
-          Overview of your WhatsApp automation campaigns.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <p className="text-muted-foreground">
+            Overview of your WhatsApp automation campaigns.
+          </p>
+        </div>
+        <RunNowButton />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
