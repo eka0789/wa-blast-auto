@@ -18,9 +18,15 @@ import { Badge } from '@/components/ui/badge'
 import { format, subDays, startOfDay, isSameDay } from 'date-fns'
 import { RunNowButton } from './run-now-button'
 import { AnalyticsChart } from './analytics-chart'
+import { DashboardControls } from './dashboard-controls'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { q?: string }
+}) {
   const supabase = await createClient()
+  const query = searchParams.q || ''
 
   // Fetch stats
   const { count: total } = await supabase
@@ -42,12 +48,18 @@ export default async function DashboardPage() {
     .select('*', { count: 'exact', head: true })
     .eq('status', 'failed')
 
-  // Fetch recent contacts
-  const { data: recentContacts } = await supabase
+  // Fetch recent contacts with search
+  let contactsQuery = supabase
     .from('contacts')
     .select('*, campaigns(name)')
+
+  if (query) {
+    contactsQuery = contactsQuery.or(`name.ilike.%${query}%,phone.ilike.%${query}%`)
+  }
+
+  const { data: recentContacts } = await contactsQuery
     .order('created_at', { ascending: false })
-    .limit(10)
+    .limit(15)
 
   const stats = [
     {
@@ -141,8 +153,9 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-4 space-y-4">
           <AnalyticsChart data={chartData} />
+          <DashboardControls />
         </div>
         <Card className="lg:col-span-3">
           <CardHeader>
