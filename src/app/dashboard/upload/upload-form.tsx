@@ -112,7 +112,7 @@ export function UploadForm({ campaigns }: UploadFormProps) {
           <Label htmlFor="campaign" className="text-sm font-medium text-slate-700">
             Assign to Campaign
           </Label>
-          <Select onValueChange={setCampaignId} value={campaignId}>
+          <Select onValueChange={(val) => setCampaignId(val ?? '')} value={campaignId}>
             <SelectTrigger className="h-9 text-sm">
               <SelectValue placeholder="Select a campaign..." />
             </SelectTrigger>

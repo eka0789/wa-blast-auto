@@ -52,14 +52,16 @@ export function RunNowButton({ sentToday }: RunNowButtonProps) {
   if (isOverLimit) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            className="border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 transition-all duration-150"
-          >
-            <AlertTriangle className="mr-2 h-4 w-4" />
-            Rate Limited ({sentToday}/{LIMIT})
-          </Button>
+        <DialogTrigger
+          render={
+            <Button
+              variant="outline"
+              className="border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 transition-all duration-150"
+            />
+          }
+        >
+          <AlertTriangle className="mr-2 h-4 w-4" />
+          Rate Limited ({sentToday}/{LIMIT})
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
